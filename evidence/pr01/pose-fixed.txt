@@ -1,0 +1,7 @@
+x: 6.43183708190918
+y: 4.349774360656738
+theta: -0.39518529176712036
+linear_velocity: 0.0
+angular_velocity: 0.0
+---
+exit=0

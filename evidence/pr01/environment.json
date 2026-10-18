@@ -1,0 +1,9 @@
+{
+  "run_mode": "wsl2",
+  "os_version": "Ubuntu 24.04.4 LTS",
+  "ros_distro": "jazzy",
+  "gazebo_version": "8.15.0",
+  "rmw": "rmw_fastrtps_cpp",
+  "domain_ok": 16,
+  "domain_broken": 17
+}
