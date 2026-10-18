@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR01",
+  "commit": "3b9aabd4debf913e70e0973ce9cb744a151f7165",
+  "course_kit": {
+    "version": "v1-w06",
+    "archive_sha256": "6eda53e1c566f7f0a7e09d7afe1e5a6f3b98397175a7e57dede9a84c6d14d0fe"
+  },
+  "commands": [
+    "ros2 node list --no-daemon --spin-time 2",
+    "ros2 topic list -t",
+    "ros2 node info /turtlesim",
+    "ros2 topic type /turtle1/pose",
+    "ros2 topic echo /turtle1/pose --once",
+    "ros2 topic hz /turtle1/pose",
+    "export ROS_DOMAIN_ID=17 && ros2 node list --no-daemon --spin-time 2",
+    "timeout 5s ros2 topic echo /turtle1/pose turtlesim/msg/Pose --once",
+    "export ROS_DOMAIN_ID=16 && ros2 node list --no-daemon --spin-time 2",
+    "timeout 5s ros2 topic echo /turtle1/pose turtlesim/msg/Pose --once"
+  ],
+  "tests": [
+    {"name": "node list shows /turtlesim and /teleop_turtle in domain 16", "status": "passed"},
+    {"name": "topic list shows /turtle1/pose with type turtlesim/msg/Pose", "status": "passed"},
+    {"name": "ros2 topic echo receives pose in domain 16 (exit=0)", "status": "passed"},
+    {"name": "ros2 topic hz measures ~62.5 Hz over ~12 s", "status": "passed"},
+    {"name": "domain 17: /turtlesim not visible, pose timeout exit=124", "status": "passed"},
+    {"name": "domain 16 restored: both nodes visible, pose received exit=0", "status": "passed"}
+  ],
+  "defect": {
+    "reproducer": "В терминале B teleop перезапущен с ROS_DOMAIN_ID=17, turtlesim остался в домене 16. В терминале C с ROS_DOMAIN_ID=17 команда ros2 node list --no-daemon --spin-time 2 показывает только /teleop_turtle; timeout 5s ros2 topic echo /turtle1/pose turtlesim/msg/Pose --once завершается с exit=124, поза не приходит, стрелки не двигают черепаху.",
+    "root_cause": "ROS_DOMAIN_ID читается при запуске ноды и определяет область discovery. Участники в разных доменах не обнаруживают друг друга, поэтому команды из домена 17 не доходят до turtlesim в домене 16, а подписчик в домене 17 не получает позу, публикуемую в домене 16.",
+    "proof_after": "Teleop перезапущен с ROS_DOMAIN_ID=16. В терминале C с ROS_DOMAIN_ID=16 команда ros2 node list --no-daemon --spin-time 2 показывает /teleop_turtle и /turtlesim; timeout 5s ros2 topic echo /turtle1/pose turtlesim/msg/Pose --once возвращает позу и exit=0, стрелки снова двигают черепаху."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}
