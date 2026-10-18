@@ -1,94 +1,59 @@
-# ros_practice_1
+## ПР02. Терминал, пакет и запуск turtlesim
 
-## ПР01. Окружение и граф ROS 2
-
-### Запуск
-
-Все терминалы открываются в корне репозитория, в одной среде (WSL2, Ubuntu 24.04, ROS 2 Jazzy).
-
-Подготовка в каждом терминале:
+### Сборка
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 export ROS_DOMAIN_ID=16
+cd ~/ros_practice_1
+colcon build --symlink-install --packages-select turtle_bringup \
+  2>&1 | tee evidence/pr02/build.txt
+source install/setup.bash
 ```
 
-Терминал A - симулятор (работает до Ctrl+C):
+### Запуск
 
 ```bash
-ros2 run turtlesim turtlesim_node
+ros2 launch turtle_bringup sim.launch.py
 ```
 
-Терминал B - управление с клавиатуры (работает до Ctrl+C):
+В другом терминале:
 
 ```bash
-ros2 run turtlesim turtle_teleop_key
-```
-
-Терминал C - наблюдение:
-
-```bash
+export ROS_DOMAIN_ID=16
 ros2 node list --no-daemon --spin-time 2
-ros2 topic list -t
-ros2 node info /turtlesim
-ros2 topic type /turtle1/pose
+```
+
+Остановка - `Ctrl+C` в терминале с launch.
+
+### CLI: движение
+
+```bash
+ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist \
+  '{linear: {x: 1.0}, angular: {z: 0.5}}'
 ros2 topic echo /turtle1/pose --once
-ros2 topic hz /turtle1/pose
 ```
 
-`ros2 topic hz` оставить на 10-15 секунд, затем Ctrl+C. Ожидаемая частота - около 62.5 Гц.
+### Сбой и исправление
 
-### Разрыв связи (домен 17)
-
-В терминале B остановить teleop (Ctrl+C) и запустить заново в другом домене:
+Сбой - публикация в неправильный топик `/cmd_vel`:
 
 ```bash
-export ROS_DOMAIN_ID=17
-ros2 run turtlesim turtle_teleop_key
+ros2 topic pub --rate 1 --wait-matching-subscriptions 0 \
+  /cmd_vel geometry_msgs/msg/Twist \
+  '{linear: {x: 1.0}, angular: {z: 0.5}}'
 ```
 
-В терминале C:
+Проверка:
 
 ```bash
-export ROS_DOMAIN_ID=17
-ros2 node list --no-daemon --spin-time 2
-timeout 5s ros2 topic echo /turtle1/pose turtlesim/msg/Pose --once > evidence/pr01/pose-broken.txt 2>&1
-printf 'exit=%s\n' "$?" >> evidence/pr01/pose-broken.txt
+ros2 topic info /cmd_vel --verbose
+ros2 topic info /turtle1/cmd_vel --verbose
 ```
 
-Ожидается: в списке нод только `/teleop_turtle`, `/turtlesim` не виден, поза не приходит, `timeout` завершается с `exit=124`.
-
-### Восстановление связи (домен 16)
-
-В терминале B остановить teleop (Ctrl+C) и запустить заново в исходном домене:
+Исправление - публикация в `/turtle1/cmd_vel`:
 
 ```bash
-export ROS_DOMAIN_ID=16
-ros2 run turtlesim turtle_teleop_key
+ros2 topic pub --rate 1 /turtle1/cmd_vel geometry_msgs/msg/Twist \
+  '{linear: {x: 1.0}, angular: {z: 0.5}}'
 ```
-
-В терминале C:
-
-```bash
-export ROS_DOMAIN_ID=16
-ros2 node list --no-daemon --spin-time 2
-timeout 5s ros2 topic echo /turtle1/pose turtlesim/msg/Pose --once > evidence/pr01/pose-fixed.txt 2>&1
-printf 'exit=%s\n' "$?" >> evidence/pr01/pose-fixed.txt
-```
-
-Ожидается: обе ноды видны, поза приходит, `exit=0`, стрелки снова двигают черепаху.
-
-### CI
-
-Workflow `.github/workflows/ci.yml` скачивает зафиксированный course-kit `v1-w06`, проверяет SHA-256, валидирует `evidence/pr01/environment.json` и запускает `check_practice.py PR01 --submission .`.
-
-### Evidence
-
-В каталоге `evidence/pr01/`:
-
-- `doctor.txt` - отчёт `ros2 doctor --report`;
-- `graph.md` - команды и вывод, ноды и роли, топики и типы, измеренная частота, сравнение «до / сбой / после», объяснение причины разрыва;
-- `environment.json` - способ запуска, версия ОС, дистрибуция ROS, версия Gazebo, RMW, домены опыта;
-- `pose-broken.txt` - доказательство разрыва связи (`exit=124`);
-- `pose-fixed.txt` - доказательство восстановления связи (`exit=0`);
-- `report.json` - отчёт по шаблону course-kit с SHA коммита реализации и заявлениями `public_tests_passed`, `defect_reproduced`, `defect_fixed`.

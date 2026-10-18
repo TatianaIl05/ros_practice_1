@@ -16,3 +16,22 @@
   `topic list -t`, `topic echo`, `topic hz`, `pose-broken.txt` (`exit=124`)
   и `pose-fixed.txt` (`exit=0`) получены локально и вставлены в отчёт;
   JSON проверен через `python3 -m json.tool`.
+
+## PR02
+
+### ИИ использовался
+
+- Использован ИИ: да (`ai_used: true` в отчёте этой ПР).
+- Модель и версия: DeepSeek (чат-ассистент).
+- Среда или интерфейс агента: веб-чат.
+- Затронутые компоненты: объяснение теории, черновики `commands.md` и `types.md`, черновики формулировок
+  в `report.json`.
+- Характер помощи: пояснение назначения `ros2 pkg create`, `colcon build`,
+  `setup.py` и `data_files`, launch-файла и полей `Twist`; предложены
+  черновики структуры отчёта и формулировок объяснения сбоя с `/cmd_vel`.
+- Как результат был проверен независимо: все команды ROS 2 выполнены
+  самостоятельно в WSL2 (Ubuntu 24.04, ROS 2 Jazzy); сборка `colcon`,
+  запуск `ros2 launch`, проверки `ros2 node list`, `ros2 topic pub`,
+  `ros2 topic info`, `ros2 topic echo` выполнены локально; выводы
+  вставлены в `commands.md` и `report.json`; JSON проверен через
+  `python3 -m json.tool`; checker запускался локально.
