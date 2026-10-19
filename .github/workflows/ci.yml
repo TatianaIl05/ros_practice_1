@@ -1,4 +1,4 @@
-name: PR02 Checks
+name: PR03 Checks
 
 on: [push, pull_request]
 
@@ -36,15 +36,22 @@ jobs:
           printf '%s  %s\n' "$COURSE_KIT_SHA256" "/tmp/$COURSE_KIT_ARCHIVE" | sha256sum -c -
           mkdir -p .course-kit
           tar -xzf "/tmp/$COURSE_KIT_ARCHIVE" -C .course-kit
-      - name: Build PR02 launch package
+      - name: Build packages
         shell: bash
         run: |
           source /opt/ros/jazzy/setup.bash
-          colcon build --symlink-install --packages-select turtle_bringup
+          colcon build --symlink-install --packages-select turtle_bringup patrol
           source install/setup.bash
           test -f "$(ros2 pkg prefix turtle_bringup)/share/turtle_bringup/launch/sim.launch.py"
           python3 -m py_compile src/turtle_bringup/launch/sim.launch.py
+          python3 -m py_compile src/patrol/patrol/patrol.py
+      - name: Run patrol tests
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          source install/setup.bash
+          python3 -m pytest src/patrol/test -v -p no:warnings
       - name: Check PR evidence
         shell: bash
         run: |
-          python3 .course-kit/v1/tools/check_practice.py PR02 --submission .
+          python3 .course-kit/v1/tools/check_practice.py PR03 --submission .

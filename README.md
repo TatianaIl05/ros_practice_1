@@ -1,4 +1,4 @@
-## ПР02. Терминал, пакет и запуск turtlesim
+## ПР03. Первая нода: поза и команда
 
 ### Сборка
 
@@ -6,54 +6,42 @@
 source /opt/ros/jazzy/setup.bash
 export ROS_DOMAIN_ID=16
 cd ~/ros_practice_1
-colcon build --symlink-install --packages-select turtle_bringup \
-  2>&1 | tee evidence/pr02/build.txt
+colcon build --symlink-install --packages-select patrol
 source install/setup.bash
 ```
 
-### Запуск
+### Запуск turtlesim
 
 ```bash
-ros2 launch turtle_bringup sim.launch.py
+ros2 run turtlesim turtlesim_node
 ```
 
-В другом терминале:
+### Запуск patrol без remap (сбой)
 
 ```bash
-export ROS_DOMAIN_ID=16
-ros2 node list --no-daemon --spin-time 2
+ros2 run patrol patrol
 ```
 
-Остановка - `Ctrl+C` в терминале с launch.
+Публикация идёт в `/cmd_vel`, черепаха не двигается.
 
-### CLI: движение
+### Запуск patrol с remap (исправление)
 
 ```bash
-ros2 topic pub --once /turtle1/cmd_vel geometry_msgs/msg/Twist \
-  '{linear: {x: 1.0}, angular: {z: 0.5}}'
-ros2 topic echo /turtle1/pose --once
+ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel
 ```
 
-### Сбой и исправление
+Черепаха двигается по кругу.
 
-Сбой - публикация в неправильный топик `/cmd_vel`:
+### Проверка частоты
 
 ```bash
-ros2 topic pub --rate 1 --wait-matching-subscriptions 0 \
-  /cmd_vel geometry_msgs/msg/Twist \
-  '{linear: {x: 1.0}, angular: {z: 0.5}}'
+timeout 10s ros2 topic hz /turtle1/cmd_vel
 ```
 
-Проверка:
+Ожидается ~10 Гц.
+
+### Тесты
 
 ```bash
-ros2 topic info /cmd_vel --verbose
-ros2 topic info /turtle1/cmd_vel --verbose
-```
-
-Исправление - публикация в `/turtle1/cmd_vel`:
-
-```bash
-ros2 topic pub --rate 1 /turtle1/cmd_vel geometry_msgs/msg/Twist \
-  '{linear: {x: 1.0}, angular: {z: 0.5}}'
+python3 -m pytest src/patrol/test -v -p no:warnings
 ```

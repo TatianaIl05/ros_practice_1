@@ -35,3 +35,23 @@
   `ros2 topic info`, `ros2 topic echo` выполнены локально; выводы
   вставлены в `commands.md` и `report.json`; JSON проверен через
   `python3 -m json.tool`; checker запускался локально.
+
+## PR03
+
+### ИИ использовался
+
+- Использован ИИ: да (`ai_used: true` в отчёте этой ПР).
+- Модель и версия: DeepSeek (чат-ассистент).
+- Среда или интерфейс агента: веб-чат.
+- Затронутые компоненты: объяснение теории (подписка, таймер, callback,
+  remap), черновики `demo.md` и `report.json`, черновики кода ноды `patrol`.
+- Характер помощи: пояснение ролей `rclpy.init`, `rclpy.spin`, callback
+  и `Ctrl+C`; объяснение сбоя с относительным `cmd_vel` и ремонта через
+  `--ros-args -r cmd_vel:=/turtle1/cmd_vel`; предложены черновики структуры
+  отчёта и формулировок.
+- Как результат был проверен независимо: все команды ROS 2 выполнены
+  самостоятельно в WSL2 (Ubuntu 24.04, ROS 2 Jazzy); сборка `colcon`,
+  запуск `patrol` без remap и с remap, `ros2 topic info`, `ros2 topic hz`,
+  `pytest` выполнены локально; выводы вставлены в `demo.md`, `tests.txt`
+  и `report.json`; JSON проверен через `python3 -m json.tool`;
+  checker запускался локально.
