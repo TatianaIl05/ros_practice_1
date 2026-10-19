@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR03",
+  "commit": "6ae93c8bcc94f5aa97e28228bde77a87fdac218d",
+  "course_kit": {
+    "version": "v1-w06",
+    "archive_sha256": "6eda53e1c566f7f0a7e09d7afe1e5a6f3b98397175a7e57dede9a84c6d14d0fe"
+  },
+  "commands": [
+    "ros2 pkg create --build-type ament_python --node-name patrol patrol --dependencies rclpy geometry_msgs",
+    "colcon build --symlink-install --packages-select patrol",
+    "source install/setup.bash && ros2 pkg prefix patrol",
+    "ros2 run turtlesim turtlesim_node",
+    "ros2 run patrol patrol",
+    "ros2 node list --no-daemon --spin-time 2",
+    "ros2 topic list -t",
+    "ros2 topic echo /cmd_vel --once",
+    "ros2 topic info /cmd_vel --verbose",
+    "ros2 topic info /turtle1/cmd_vel --verbose",
+    "ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel",
+    "ros2 topic info /turtle1/cmd_vel --verbose",
+    "timeout 10s ros2 topic hz /turtle1/cmd_vel",
+    "python3 -m pytest src/patrol/test -v -p no:warnings"
+  ],
+  "tests": [
+    {"name": "package patrol builds with colcon", "status": "passed"},
+    {"name": "patrol node starts and appears in ros2 node list", "status": "passed"},
+    {"name": "patrol publishes Twist to relative cmd_vel", "status": "passed"},
+    {"name": "cmd_vel has publisher /patrol and no subscriber", "status": "passed"},
+    {"name": "turtle1/cmd_vel has subscriber /turtlesim and no publisher", "status": "passed"},
+    {"name": "turtle does not move without remap", "status": "passed"},
+    {"name": "remap cmd_vel:=/turtle1/cmd_vel connects patrol to turtlesim", "status": "passed"},
+    {"name": "turtle moves in a circle after remap", "status": "passed"},
+    {"name": "ros2 topic hz /turtle1/cmd_vel measures ~10 Hz", "status": "passed"},
+    {"name": "test_choose_command_no_pose passes", "status": "passed"},
+    {"name": "test_choose_command_with_pose passes", "status": "passed"},
+    {"name": "flake8 and pep257 pass", "status": "passed"}
+  ],
+  "defect": {
+    "reproducer": "Нода patrol запущена без remap: ros2 run patrol patrol. В терминале C ros2 topic info /cmd_vel --verbose показывает Publisher count: 1 (Node name: patrol), Subscription count: 0. ros2 topic info /turtle1/cmd_vel --verbose показывает Publisher count: 0, Subscription count: 1 (Node name: turtlesim). Черепаха не двигается, хотя в /cmd_vel идут Twist с linear.x=0.5 и angular.z=0.3.",
+    "root_cause": "patrol создаёт publisher на относительное имя cmd_vel, которое разрешается в /cmd_vel. turtlesim подписан на /turtle1/cmd_vel. Тип geometry_msgs/msg/Twist совпадает, но имя топика - нет. Discovery не связывает publisher и subscriber с разными именами топиков, поэтому сообщения не доставляются.",
+    "proof_after": "Нода перезапущена с remap: ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel. ros2 topic info /turtle1/cmd_vel --verbose показывает Publisher count: 1 (Node name: patrol) и Subscription count: 1 (Node name: turtlesim). Черепаха двигается по кругу. ros2 topic hz /turtle1/cmd_vel показывает average rate ~10.000 Гц, min: 0.099s, max: 0.101s, std dev: 0.00045s."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}
