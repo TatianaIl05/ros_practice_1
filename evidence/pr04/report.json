@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR04",
+  "commit": "c03b7960086670d04fc3d991f239c86e0a529dab",
+  "course_kit": {
+    "version": "v1-w06",
+    "archive_sha256": "6eda53e1c566f7f0a7e09d7afe1e5a6f3b98397175a7e57dede9a84c6d14d0fe"
+  },
+  "commands": [
+    "colcon build --symlink-install --packages-select patrol",
+    "source install/setup.bash && ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel",
+    "ros2 param list /patrol",
+    "ros2 param get /patrol linear_speed",
+    "ros2 param get /patrol turn_rate",
+    "ros2 param get /patrol publish_hz",
+    "timeout 10s ros2 topic hz /turtle1/cmd_vel",
+    "ros2 param set /patrol publish_hz 5.0",
+    "ros2 param set /patrol publish_hz 0.0",
+    "ros2 param set /patrol publish_hz -1.0",
+    "ros2 param set /patrol publish_hz nan",
+    "ros2 service call /clear std_srvs/srv/Empty",
+    "ros2 action list -t",
+    "python3 -m pytest src/patrol/test -v -p no:warnings"
+  ],
+  "tests": [
+    {"name": "colcon build patrol passes", "status": "passed"},
+    {"name": "parameters linear_speed, turn_rate, publish_hz declared", "status": "passed"},
+    {"name": "publish_hz 10.0 gives ~10 Hz on /turtle1/cmd_vel", "status": "passed"},
+    {"name": "publish_hz 5.0 accepted and frequency changes to ~5 Hz", "status": "passed"},
+    {"name": "publish_hz 0.0 rejected with reason, old value and frequency preserved", "status": "passed"},
+    {"name": "publish_hz -1.0 rejected", "status": "passed"},
+    {"name": "publish_hz nan rejected (type error via CLI, NaN check in tests)", "status": "passed"},
+    {"name": "linear_speed 0.8 and turn_rate 0.5 accepted", "status": "passed"},
+    {"name": "linear_speed 2.0 rejected", "status": "passed"},
+    {"name": "is_valid_hz tests pass", "status": "passed"},
+    {"name": "is_valid_speed tests pass", "status": "passed"},
+    {"name": "is_valid_turn_rate tests pass", "status": "passed"},
+    {"name": "choose_command tests pass", "status": "passed"},
+    {"name": "flake8 and pep257 pass", "status": "passed"}
+  ],
+  "defect": {
+    "reproducer": "Проверка publish_hz временно отключена в parameters_callback. Нода patrol запущена с remap cmd_vel:=/turtle1/cmd_vel. Команда ros2 param set /patrol publish_hz 0.0 принимается, _recreate_timer(0.0) выполняет 1.0 / 0.0, в терминале ноды появляется ZeroDivisionError: float division by zero, процесс завершается с failure 1. ros2 param set не получает ответа, потому что нода уже упала.",
+    "root_cause": "Без проверки is_valid_hz значение 0.0 попадает в _recreate_timer, где период таймера вычисляется как 1.0 / hz. Деление на ноль вызывает ZeroDivisionError и завершает процесс. Проверка должна отклонять значение до изменения таймера и активного состояния.",
+    "proof_after": "Проверка publish_hz возвращена в parameters_callback. Команда ros2 param set /patrol publish_hz 0.0 возвращает Setting parameter failed: publish_hz must be in [1, 30]. ros2 param get /patrol publish_hz показывает прежнее значение 5.0. ros2 topic hz /turtle1/cmd_vel показывает прежнюю частоту ~5 Гц. Допустимое значение 5.0 принимается, таймер пересоздаётся с периодом 1/5 = 0.2 с."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}
