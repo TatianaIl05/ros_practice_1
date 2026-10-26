@@ -1,4 +1,4 @@
-name: PR03 Checks
+name: PR04 Checks
 
 on: [push, pull_request]
 
@@ -54,4 +54,4 @@ jobs:
       - name: Check PR evidence
         shell: bash
         run: |
-          python3 .course-kit/v1/tools/check_practice.py PR03 --submission .
+          python3 .course-kit/v1/tools/check_practice.py PR04 --submission .

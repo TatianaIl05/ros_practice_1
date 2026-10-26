@@ -3,11 +3,12 @@
 <package format="3">
   <name>patrol</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Patrol node: subscribe to pose, publish Twist with parameters</description>
   <maintainer email="t.ilinykh1@g.nsu.ru">tania</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache-2.0</license>
 
   <depend>rclpy</depend>
+  <depend>rcl_interfaces</depend>
   <depend>geometry_msgs</depend>
   <depend>turtlesim</depend>
   <test_depend>ament_copyright</test_depend>
