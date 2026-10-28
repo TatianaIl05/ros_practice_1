@@ -75,3 +75,26 @@
   `pytest` выполнены локально; выводы вставлены в `parameters.md`,
   `tests.txt` и `report.json`; JSON проверен через `python3 -m json.tool`;
   checker запускался локально.
+
+## PR05
+
+### ИИ использовался
+
+- Использован ИИ: да (`ai_used: true` в отчёте этой ПР).
+- Модель и версия: DeepSeek (чат-ассистент).
+- Среда или интерфейс агента: веб-чат.
+- Затронутые компоненты: объяснение теории (launch-аргументы, namespace,
+  QoS, MCAP, replay), черновики `pose_relay.py`, `patrol.launch.py`,
+  `qos-overrides.yaml`, `report.json`.
+- Характер помощи: пояснение, как объявлять аргументы launch через
+  `DeclareLaunchArgument`, использовать `LaunchConfiguration` и `IfCondition`,
+  как работают QoS-политики (reliability) и почему `best_effort` издатель
+  несовместим с `reliable` подписчиком; объяснение записи MCAP и replay
+  с QoS override; предложены черновики структуры отчёта и формулировок.
+- Как результат был проверен независимо: все команды ROS 2 выполнены
+  самостоятельно в WSL2 (Ubuntu 24.04, ROS 2 Jazzy); сборка `colcon`,
+  запуск launch в namespace `robot_a`, `ros2 topic echo` с разными QoS,
+  `ros2 bag record/play/info`, replay с `--qos-profile-overrides-path`
+  выполнены локально; выводы вставлены в `qos-before.txt`, `qos-after.txt`,
+  `bag-metadata.yaml` и `report.json`; JSON проверен через
+  `python3 -m json.tool`; checker запускался локально.

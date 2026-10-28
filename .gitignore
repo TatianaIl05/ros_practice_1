@@ -5,3 +5,7 @@ build/
 install/
 log/
 course-kit.tar.gz
+__pycache__/
+*.pyc
+*.pyo
+evidence/pr05/bag/

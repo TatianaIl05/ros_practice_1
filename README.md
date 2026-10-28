@@ -1,4 +1,4 @@
-## ПР04. Параметризуем движение
+## ПР05. Launch, QoS и повтор записи
 
 ### Сборка
 
@@ -6,60 +6,68 @@
 source /opt/ros/jazzy/setup.bash
 export ROS_DOMAIN_ID=16
 cd ~/ros_practice_1
-colcon build --symlink-install --packages-select patrol
+colcon build --symlink-install --packages-select course_bringup
 source install/setup.bash
 ```
 
-### Запуск
+### Запуск с reliable (сбой)
 
 ```bash
-ros2 run turtlesim turtlesim_node
+ros2 launch course_bringup patrol.launch.py \
+  namespace:=robot_a subscriber_reliability:=reliable record:=false
 ```
+
+Проверка:
 
 ```bash
-ros2 run patrol patrol --ros-args -r cmd_vel:=/turtle1/cmd_vel
+ros2 node list --no-daemon --spin-time 2
+ros2 topic list -t
+timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability reliable --once
 ```
 
-### Параметры
+Ожидается `exit=124` (несовместимый QoS).
+
+### Запуск с best_effort (исправление)
 
 ```bash
-ros2 param list /patrol
-ros2 param get /patrol linear_speed
-ros2 param get /patrol turn_rate
-ros2 param get /patrol publish_hz
+ros2 launch course_bringup patrol.launch.py \
+  namespace:=robot_a subscriber_reliability:=best_effort record:=false
 ```
 
-Допустимые значения:
-- `linear_speed`: 0-1 м/с,
-- `turn_rate`: -1-1 рад/с,
-- `publish_hz`: 1-30 Гц.
-
-### Изменение на лету
+Проверка:
 
 ```bash
-ros2 param set /patrol publish_hz 5.0
-ros2 param set /patrol linear_speed 0.8
-ros2 param set /patrol turn_rate 0.5
+timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability best_effort --once
 ```
 
-### Недопустимое значение отклоняется
+Ожидается поза и `exit=0`.
+
+### Запись bag (MCAP)
 
 ```bash
-ros2 param set /patrol publish_hz 0.0
-# Setting parameter failed: publish_hz must be in [1, 30]
-ros2 param get /patrol publish_hz
-# Прежнее значение
+ros2 launch course_bringup patrol.launch.py \
+  namespace:=robot_a subscriber_reliability:=best_effort record:=true \
+  bag_dir:=evidence/pr05/bag
 ```
 
-### Тесты
+Подождать 10-15 секунд, остановить `Ctrl+C`.
 
 ```bash
-python3 -m pytest src/patrol/test -v -p no:warnings
+ros2 bag info evidence/pr05/bag
 ```
 
-### Service и action
+### Replay с QoS override
 
 ```bash
-ros2 service call /clear std_srvs/srv/Empty
-ros2 action list -t
+ros2 bag play evidence/pr05/bag \
+  --qos-profile-overrides-path config/qos-overrides.yaml
 ```
+
+Проверка:
+
+```bash
+timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability best_effort --once
+timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability reliable --once
+```
+
+Ожидается: `exit=0` для best_effort, `exit=124` для reliable.

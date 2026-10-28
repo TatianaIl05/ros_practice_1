@@ -1,4 +1,4 @@
-name: PR04 Checks
+name: PR05 Checks
 
 on: [push, pull_request]
 
@@ -40,11 +40,13 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/jazzy/setup.bash
-          colcon build --symlink-install --packages-select turtle_bringup patrol
+          colcon build --symlink-install --packages-select turtle_bringup patrol course_bringup
           source install/setup.bash
           test -f "$(ros2 pkg prefix turtle_bringup)/share/turtle_bringup/launch/sim.launch.py"
           python3 -m py_compile src/turtle_bringup/launch/sim.launch.py
           python3 -m py_compile src/patrol/patrol/patrol.py
+          python3 -m py_compile src/course_bringup/course_bringup/pose_relay.py
+          python3 -m py_compile src/course_bringup/launch/patrol.launch.py
       - name: Run patrol tests
         shell: bash
         run: |
@@ -54,4 +56,4 @@ jobs:
       - name: Check PR evidence
         shell: bash
         run: |
-          python3 .course-kit/v1/tools/check_practice.py PR04 --submission .
+          python3 .course-kit/v1/tools/check_practice.py PR05 --submission .
