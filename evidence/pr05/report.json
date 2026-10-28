@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR05",
+  "commit": "3f1fb325c6dfdc3c014d8bbf87c9d7f24d540190",
+  "course_kit": {
+    "version": "v1-w06",
+    "archive_sha256": "6eda53e1c566f7f0a7e09d7afe1e5a6f3b98397175a7e57dede9a84c6d14d0fe"
+  },
+  "commands": [
+    "colcon build --symlink-install --packages-select course_bringup",
+    "ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=reliable record:=false",
+    "ros2 node list --no-daemon --spin-time 2",
+    "ros2 topic list -t",
+    "timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability reliable --once",
+    "ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=best_effort record:=true bag_dir:=evidence/pr05/bag",
+    "timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability best_effort --once",
+    "ros2 bag info evidence/pr05/bag",
+    "ros2 bag play evidence/pr05/bag --qos-profile-overrides-path config/qos-overrides.yaml",
+    "timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability best_effort --once",
+    "timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability reliable --once"
+  ],
+  "tests": [
+    {"name": "course_bringup builds with colcon", "status": "passed"},
+    {"name": "launch starts turtlesim, patrol, pose_relay", "status": "passed"},
+    {"name": "nodes isolated in namespace /robot_a", "status": "passed"},
+    {"name": "topic /robot_a/sensor_pose visible with type turtlesim/msg/Pose", "status": "passed"},
+    {"name": "reliable subscriber gets no messages from best_effort publisher (exit=124)", "status": "passed"},
+    {"name": "best_effort subscriber receives messages (exit=0)", "status": "passed"},
+    {"name": "recorder writes MCAP bag with 5524 messages", "status": "passed"},
+    {"name": "ros2 bag info shows one topic /robot_a/sensor_pose", "status": "passed"},
+    {"name": "replay with QoS override delivers messages to best_effort", "status": "passed"},
+    {"name": "replay with QoS override rejects reliable subscriber (exit=124)", "status": "passed"}
+  ],
+  "defect": {
+    "reproducer": "Система запущена через launch: ros2 launch course_bringup patrol.launch.py namespace:=robot_a subscriber_reliability:=reliable record:=false. pose_relay публикует /robot_a/sensor_pose с best_effort. Команда timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability reliable --once завершается с exit=124. В выводе: New publisher discovered on topic '/robot_a/sensor_pose', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY. Топик виден в ros2 topic list, но сообщений нет.",
+    "root_cause": "Издатель pose_relay использует reliability=best_effort, подписчик ros2 topic echo с --qos-reliability reliable использует reliability=reliable. best_effort не может обслужить reliable, потому что не гарантирует доставку. Discovery связывает участников (топик виден), но политики несовместимы, поэтому сообщения не доставляются.",
+    "proof_after": "Подписчик переключён на best_effort: timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability best_effort --once возвращает позу и exit=0. Запись bag содержит 5524 сообщения /robot_a/sensor_pose. Replay с --qos-profile-overrides-path config/qos-overrides.yaml доставляет сообщения best_effort подписчику (exit=0) и не доставляет reliable подписчику (exit=124)."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true,
+    "replay_verified": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}
