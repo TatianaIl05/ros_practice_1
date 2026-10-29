@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "practice_id": "PR06",
+  "commit": "0aee1a9c41f1b395d39c0921f07487696730057a",
+  "course_kit": {
+    "version": "v1-w06",
+    "archive_sha256": "6eda53e1c566f7f0a7e09d7afe1e5a6f3b98397175a7e57dede9a84c6d14d0fe"
+  },
+  "commands": [
+    "colcon build --symlink-install --packages-select course_description",
+    "xacro src/course_description/urdf/vehicle.urdf.xacro > /tmp/vehicle.urdf",
+    "check_urdf /tmp/vehicle.urdf",
+    "ros2 launch course_description display.launch.py",
+    "ros2 topic info /tf_static --verbose",
+    "timeout 4 ros2 topic echo /tf_static --once --qos-durability transient_local --qos-reliability reliable",
+    "timeout 4 ros2 topic echo /tf_static --once --qos-durability volatile --qos-reliability reliable",
+    "ros2 run tf2_ros tf2_echo base_link lidar_link",
+    "ros2 run tf2_tools view_frames"
+  ],
+  "tests": [
+    {"name": "course_description builds with colcon", "status": "passed"},
+    {"name": "xacro expands vehicle.urdf.xacro without errors", "status": "passed"},
+    {"name": "check_urdf parses tree: base_link has 7 children", "status": "passed"},
+    {"name": "robot_state_publisher publishes /tf_static with RELIABLE and TRANSIENT_LOCAL", "status": "passed"},
+    {"name": "transient_local subscriber receives /tf_static (exit=0)", "status": "passed"},
+    {"name": "volatile subscriber does not receive /tf_static (exit=124)", "status": "passed"},
+    {"name": "tf2_echo base_link lidar_link returns [0.280, 0.000, 0.380]", "status": "passed"},
+    {"name": "view_frames shows all 7 links as children of base_link", "status": "passed"},
+    {"name": "defect: changing lidar parent to camera_link gives [0.560, 0.000, 0.760]", "status": "passed"},
+    {"name": "fix: restoring lidar parent to base_link gives [0.280, 0.000, 0.380]", "status": "passed"}
+  ],
+  "defect": {
+    "reproducer": "В vehicle.urdf.xacro у lidar_joint изменён parent с base_link на camera_link. После пересборки и запуска display.launch.py команда ros2 run tf2_ros tf2_echo base_link lidar_link показывает Translation: [0.560, 0.000, 0.760] вместо [0.280, 0.000, 0.380]. Лидар смещён на 0.56 м вперёд и 0.76 м вверх, потому что camera_link уже смещён на 0.28, 0, 0.38 относительно base_link, и смещения складываются. check_urdf при этом проходит: дерево синтаксически корректно, но геометрия неверна.",
+    "root_cause": "lidar_joint связывает lidar_link с camera_link, а не с base_link. Преобразование base_link -> lidar_link становится суммой base_link -> camera_link и camera_link -> lidar_link. check_urdf проверяет только синтаксис и связность, но не геометрию, поэтому ошибочное дерево проходит проверку.",
+    "proof_after": "parent у lidar_joint возвращён на base_link. После пересборки и запуска display.launch.py команда ros2 run tf2_ros tf2_echo base_link lidar_link снова показывает Translation: [0.280, 0.000, 0.380]. check_urdf проходит, view_frames показывает lidar_link дочерним у base_link."
+  },
+  "claims": {
+    "public_tests_passed": true,
+    "defect_reproduced": true,
+    "defect_fixed": true
+  },
+  "time": {
+    "contact_academic_hours": 2,
+    "self_study_hours": 2
+  },
+  "ai_used": true
+}
