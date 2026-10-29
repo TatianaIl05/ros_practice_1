@@ -1,4 +1,4 @@
-## ПР05. Launch, QoS и повтор записи
+## ПР06. Модель робота, tf2 и QoS преобразований
 
 ### Сборка
 
@@ -6,68 +6,47 @@
 source /opt/ros/jazzy/setup.bash
 export ROS_DOMAIN_ID=16
 cd ~/ros_practice_1
-colcon build --symlink-install --packages-select course_bringup
+colcon build --symlink-install --packages-select course_description
 source install/setup.bash
 ```
 
-### Запуск с reliable (сбой)
+### Проверка URDF
 
 ```bash
-ros2 launch course_bringup patrol.launch.py \
-  namespace:=robot_a subscriber_reliability:=reliable record:=false
+xacro src/course_description/urdf/vehicle.urdf.xacro > /tmp/vehicle.urdf
+check_urdf /tmp/vehicle.urdf
 ```
 
-Проверка:
+### Запуск
 
 ```bash
-ros2 node list --no-daemon --spin-time 2
-ros2 topic list -t
-timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability reliable --once
+ros2 launch course_description display.launch.py
 ```
 
-Ожидается `exit=124` (несовместимый QoS).
-
-### Запуск с best_effort (исправление)
+### QoS на /tf_static
 
 ```bash
-ros2 launch course_bringup patrol.launch.py \
-  namespace:=robot_a subscriber_reliability:=best_effort record:=false
+ros2 topic info /tf_static --verbose
+timeout 4 ros2 topic echo /tf_static --once \
+  --qos-durability transient_local --qos-reliability reliable
+timeout 4 ros2 topic echo /tf_static --once \
+  --qos-durability volatile --qos-reliability reliable
 ```
 
-Проверка:
+### Проверка TF
 
 ```bash
-timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability best_effort --once
+ros2 run tf2_ros tf2_echo base_link lidar_link
+ros2 run tf2_tools view_frames
 ```
 
-Ожидается поза и `exit=0`.
+### Сбой
 
-### Запись bag (MCAP)
+Изменить parent у `lidar_joint` с `base_link` на `camera_link`:
 
 ```bash
-ros2 launch course_bringup patrol.launch.py \
-  namespace:=robot_a subscriber_reliability:=best_effort record:=true \
-  bag_dir:=evidence/pr05/bag
+# в vehicle.urdf.xacro
+<parent link="camera_link"/>
 ```
 
-Подождать 10-15 секунд, остановить `Ctrl+C`.
-
-```bash
-ros2 bag info evidence/pr05/bag
-```
-
-### Replay с QoS override
-
-```bash
-ros2 bag play evidence/pr05/bag \
-  --qos-profile-overrides-path config/qos-overrides.yaml
-```
-
-Проверка:
-
-```bash
-timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability best_effort --once
-timeout 5s ros2 topic echo /robot_a/sensor_pose --qos-reliability reliable --once
-```
-
-Ожидается: `exit=0` для best_effort, `exit=124` для reliable.
+Пересобрать, запустить, проверить `tf2_echo` — неверное положение `[0.560, 0.000, 0.760]`. Вернуть `base_link`.

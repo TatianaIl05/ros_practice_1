@@ -98,3 +98,25 @@
   выполнены локально; выводы вставлены в `qos-before.txt`, `qos-after.txt`,
   `bag-metadata.yaml` и `report.json`; JSON проверен через
   `python3 -m json.tool`; checker запускался локально.
+
+## PR06
+
+### ИИ использовался
+
+- Использован ИИ: да (`ai_used: true` в отчёте этой ПР).
+- Модель и версия: DeepSeek (чат-ассистент).
+- Среда или интерфейс агента: веб-чат.
+- Затронутые компоненты: объяснение теории (URDF, Xacro, link, joint,
+  robot_state_publisher, /tf_static, QoS), черновики `frames.md`, `report.json`.
+- Характер помощи: пояснение структуры URDF (link, joint, visual, collision,
+  inertial), синтаксиса Xacro (`xacro:property`, `xacro:macro`), роли
+  `robot_state_publisher` и различия `/tf` и `/tf_static`; объяснение QoS
+  (transient_local vs volatile); предложены черновики структуры отчёта
+  и формулировок.
+- Как результат был проверен независимо: `colcon build`, `xacro`,
+  `check_urdf`, `ros2 launch course_description display.launch.py`,
+  `ros2 topic info /tf_static --verbose`, `ros2 topic echo` с разными QoS,
+  `tf2_echo`, `view_frames` выполнены локально в WSL2 (Ubuntu 24.04, ROS 2
+  Jazzy); выводы вставлены в `tf-qos.txt`, `model-check.txt`, `frames.md`
+  и `report.json`; JSON проверен через `python3 -m json.tool`;
+  checker запускался локально.

@@ -1,0 +1,27 @@
+robot name is: vehicle
+---------- Successfully Parsed XML ---------------
+root Link: base_link has 7 child(ren)
+    child(1):  camera_link
+    child(2):  front_left_wheel_link
+    child(3):  front_right_wheel_link
+    child(4):  imu_link
+    child(5):  lidar_link
+    child(6):  rear_left_wheel_link
+    child(7):  rear_right_wheel_link
+
+## tf2_echo base_link lidar_link (правильное положение)
+
+- Translation: [0.280, 0.000, 0.380]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+
+## Сбой: parent lidar_joint = camera_link
+
+- Translation: [0.560, 0.000, 0.760]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]
+
+Лидар оказался на 0.56 м вперёд и 0.76 м вверх вместо 0.28 и 0.38, потому что camera_link уже смещён на 0.28, 0, 0.38 относительно base_link. Сумма двух смещений даёт неверное положение.
+
+## Исправление: parent lidar_joint = base_link
+
+- Translation: [0.280, 0.000, 0.380]
+- Rotation: in Quaternion (xyzw) [0.000, 0.000, 0.000, 1.000]

@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="vehicle">
+  <xacro:property name="wheelbase" value="0.8"/>
+  <xacro:property name="track" value="0.62"/>
+
+  <xacro:property name="body_length" value="1.05"/>
+  <xacro:property name="body_width" value="0.52"/>
+  <xacro:property name="body_height" value="0.22"/>
+  <xacro:property name="body_mass" value="12.0"/>
+  <xacro:property name="body_xx" value="0.55"/>
+  <xacro:property name="body_xy" value="0"/>
+  <xacro:property name="body_xz" value="0"/>
+  <xacro:property name="body_yy" value="1.10"/>
+  <xacro:property name="body_yz" value="0"/>
+  <xacro:property name="body_zz" value="1.40"/>
+
+  <xacro:property name="camera_length" value="0.05"/>
+  <xacro:property name="camera_width" value="0.05"/>
+  <xacro:property name="camera_height" value="0.05"/>
+  <xacro:property name="camera_mass" value="0.033"/>
+  <xacro:property name="camera_xx" value="0.000333"/>
+  <xacro:property name="camera_xy" value="0"/>
+  <xacro:property name="camera_xz" value="0"/>
+  <xacro:property name="camera_yy" value="0.000333"/>
+  <xacro:property name="camera_yz" value="0"/>
+  <xacro:property name="camera_zz" value="0.000333"/>
+  <xacro:property name="camera_x" value="0.28"/>
+  <xacro:property name="camera_y" value="0"/>
+  <xacro:property name="camera_z" value="0.38"/>
+  <xacro:property name="camera_roll" value="0"/>
+  <xacro:property name="camera_pitch" value="0"/>
+  <xacro:property name="camera_yaw" value="0"/>
+
+  <xacro:property name="lidar_radius" value="0.05"/>
+  <xacro:property name="lidar_length" value="0.05"/>
+  <xacro:property name="lidar_mass" value="0.033"/>
+  <xacro:property name="lidar_xx" value="0.000333"/>
+  <xacro:property name="lidar_xy" value="0"/>
+  <xacro:property name="lidar_xz" value="0"/>
+  <xacro:property name="lidar_yy" value="0.000333"/>
+  <xacro:property name="lidar_yz" value="0"/>
+  <xacro:property name="lidar_zz" value="0.000333"/>
+  <xacro:property name="lidar_x" value="0.28"/>
+  <xacro:property name="lidar_y" value="0"/>
+  <xacro:property name="lidar_z" value="0.38"/>
+  <xacro:property name="lidar_roll" value="0"/>
+  <xacro:property name="lidar_pitch" value="0"/>
+  <xacro:property name="lidar_yaw" value="0"/>
+
+  <xacro:property name="imu_length" value="0.05"/>
+  <xacro:property name="imu_width" value="0.05"/>
+  <xacro:property name="imu_height" value="0.05"/>
+  <xacro:property name="imu_mass" value="0.033"/>
+  <xacro:property name="imu_xx" value="0.000333"/>
+  <xacro:property name="imu_xy" value="0"/>
+  <xacro:property name="imu_xz" value="0"/>
+  <xacro:property name="imu_yy" value="0.000333"/>
+  <xacro:property name="imu_yz" value="0"/>
+  <xacro:property name="imu_zz" value="0.000333"/>
+  <xacro:property name="imu_x" value="0.28"/>
+  <xacro:property name="imu_y" value="0"/>
+  <xacro:property name="imu_z" value="0.38"/>
+  <xacro:property name="imu_roll" value="0"/>
+  <xacro:property name="imu_pitch" value="0"/>
+  <xacro:property name="imu_yaw" value="0"/>
+
+  <xacro:property name="wheel_radius" value="0.12"/>
+  <xacro:property name="wheel_width" value="0.07"/>
+  <xacro:property name="wheel_mass" value="0.8"/>
+  <xacro:property name="wheel_xx" value="0.006"/>
+  <xacro:property name="wheel_xy" value="0"/>
+  <xacro:property name="wheel_xz" value="0"/>
+  <xacro:property name="wheel_yy" value="0.003"/>
+  <xacro:property name="wheel_yz" value="0"/>
+  <xacro:property name="wheel_zz" value="0.006"/>
+  <xacro:property name="wheel_z" value="0"/>
+  <xacro:property name="wheel_roll" value="1.57"/>
+  <xacro:property name="wheel_pitch" value="0"/>
+  <xacro:property name="wheel_yaw" value="0"/>
+
+  <xacro:property name="front_wheel_x" value="0.4"/>
+  <xacro:property name="rear_wheel_x" value="-0.4"/>
+  <xacro:property name="left_wheel_y" value="0.31"/>
+  <xacro:property name="right_wheel_y" value="-0.31"/>
+
+  <xacro:macro name="wheel" params="prefix x y">
+    <link name="${prefix}_wheel_link">
+      <visual>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${wheel_mass}"/>
+        <inertia ixx="${wheel_xx}" ixy="${wheel_xy}" ixz="${wheel_xz}" iyy="${wheel_yy}" iyz="${wheel_yz}" izz="${wheel_zz}"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${prefix}_wheel_link"/>
+      <origin xyz="${x} ${y} ${wheel_z}" rpy="${wheel_roll} ${wheel_pitch} ${wheel_yaw}"/>
+    </joint>
+  </xacro:macro>
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${body_mass}"/>
+      <inertia ixx="${body_xx}" ixy = "${body_xy}" ixz="${body_xz}" iyy="${body_yy}" iyz="${body_yz}" izz="${body_zz}"/>
+    </inertial>
+  </link>
+
+  <link name = "camera_link">
+    <visual>
+      <geometry>
+        <box size="${camera_length} ${camera_width} ${camera_height}"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${camera_length} ${camera_width} ${camera_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${camera_mass}"/>
+      <inertia ixx="${camera_xx}" ixy = "${camera_xy}" ixz="${camera_xz}" iyy="${camera_yy}" iyz="${camera_yz}" izz="${camera_zz}"/>
+    </inertial>
+  </link>
+
+  <link name="lidar_link">
+     <visual>
+      <geometry>
+        <cylinder radius="${lidar_radius}" length="${lidar_length}"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${lidar_radius}" length="${lidar_length}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${lidar_mass}"/>
+      <inertia ixx="${lidar_xx}" ixy = "${lidar_xy}" ixz="${lidar_xz}" iyy="${lidar_yy}" iyz="${lidar_yz}" izz="${lidar_zz}"/>
+    </inertial>
+  </link>
+
+  <link name = "imu_link">
+    <visual>
+      <geometry>
+        <box size="${imu_length} ${imu_width} ${imu_height}"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${imu_length} ${imu_width} ${imu_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${imu_mass}"/>
+      <inertia ixx="${imu_xx}" ixy = "${imu_xy}" ixz="${imu_xz}" iyy="${imu_yy}" iyz="${imu_yz}" izz="${imu_zz}"/>
+    </inertial>
+  </link>
+
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${camera_x} ${camera_y} ${camera_z}" rpy="${camera_roll} ${camera_pitch} ${camera_yaw}"/>
+  </joint>
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="${lidar_x} ${lidar_y} ${lidar_z}" rpy="${lidar_roll} ${lidar_pitch} ${lidar_yaw}"/>
+  </joint>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="${imu_x} ${imu_y} ${imu_z}" rpy="${imu_roll} ${imu_pitch} ${imu_yaw}"/>
+  </joint>
+
+  <xacro:wheel prefix="front_left" x="${front_wheel_x}" y="${left_wheel_y}"/>
+  <xacro:wheel prefix="front_right" x="${front_wheel_x}" y="${right_wheel_y}"/>
+  <xacro:wheel prefix="rear_left" x="${rear_wheel_x}" y="${left_wheel_y}"/>
+  <xacro:wheel prefix="rear_right" x="${rear_wheel_x}" y="${right_wheel_y}"/>
+</robot>
